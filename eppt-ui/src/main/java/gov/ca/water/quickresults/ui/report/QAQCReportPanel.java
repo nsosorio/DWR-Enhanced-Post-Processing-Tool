@@ -1,13 +1,13 @@
 /*
- * Enhanced Post Processing Tool (EPPT) Copyright (c) 2019.
+ * Enhanced Post Processing Tool (EPPT) Copyright (c) 2020.
  *
- * EPPT is copyrighted by the State of California, Department of Water Resources. It is licensed
- * under the GNU General Public License, version 2. This means it can be
- * copied, distributed, and modified freely, but you may not restrict others
- * in their ability to copy, distribute, and modify it. See the license below
- * for more details.
+ *  EPPT is copyrighted by the State of California, Department of Water Resources. It is licensed
+ *  under the GNU General Public License, version 2. This means it can be
+ *  copied, distributed, and modified freely, but you may not restrict others
+ *  in their ability to copy, distribute, and modify it. See the license below
+ *  for more details.
  *
- * GNU General Public License
+ *  GNU General Public License
  */
 
 package gov.ca.water.quickresults.ui.report;
@@ -29,7 +29,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.Month;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -47,23 +47,20 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
-import gov.ca.water.calgui.EpptInitializationException;
 import gov.ca.water.calgui.bo.CommonPeriodFilter;
 import gov.ca.water.calgui.bo.SimpleFileFilter;
 import gov.ca.water.calgui.bo.WaterYearDefinition;
-import gov.ca.water.calgui.bo.WaterYearIndex;
 import gov.ca.water.calgui.bo.WaterYearPeriod;
 import gov.ca.water.calgui.bo.WaterYearPeriodRange;
 import gov.ca.water.calgui.bo.WaterYearPeriodRangesFilter;
 import gov.ca.water.calgui.bo.WaterYearType;
-import gov.ca.water.calgui.busservice.impl.WaterYearIndexAliasReader;
-import gov.ca.water.calgui.busservice.impl.WaterYearTableReader;
 import gov.ca.water.calgui.constant.Constant;
 import gov.ca.water.calgui.constant.EpptPreferences;
 import gov.ca.water.calgui.project.EpptScenarioRun;
@@ -176,8 +173,7 @@ public class QAQCReportPanel extends EpptPanel
 		_summaryModules.forEach(_summaryModulesPanel::add);
 		_tabbedPane1.addChangeListener(this::tabChanged);
 		_cancelButton.addActionListener(this::cancelRunningTask);
-		_standardSummaryStatiticsCheckBox.addActionListener(e ->
-		{
+		_standardSummaryStatiticsCheckBox.addActionListener(e -> {
 			if(!_standardSummaryStatiticsCheckBox.isSelected())
 			{
 				_summaryModules.forEach(c -> c.setSelected(false));
@@ -270,8 +266,7 @@ public class QAQCReportPanel extends EpptPanel
 	{
 		if(checkIfDssFileIsOpen(_altRun))
 		{
-			_altWreslFuture = _executor.submit(() ->
-			{
+			_altWreslFuture = _executor.submit(() -> {
 				try
 				{
 					_tabbedPane1.setSelectedIndex(2);
@@ -280,8 +275,7 @@ public class QAQCReportPanel extends EpptPanel
 				}
 				finally
 				{
-					SwingUtilities.invokeLater(() ->
-					{
+					SwingUtilities.invokeLater(() -> {
 						if(_tabbedPane1.getSelectedIndex() == 2)
 						{
 							_cancelButton.setEnabled(false);
@@ -297,8 +291,7 @@ public class QAQCReportPanel extends EpptPanel
 	{
 		if(checkIfDssFileIsOpen(_baseRun))
 		{
-			_baseWreslFuture = _executor.submit(() ->
-			{
+			_baseWreslFuture = _executor.submit(() -> {
 				try
 				{
 					_tabbedPane1.setSelectedIndex(1);
@@ -307,8 +300,7 @@ public class QAQCReportPanel extends EpptPanel
 				}
 				finally
 				{
-					SwingUtilities.invokeLater(() ->
-					{
+					SwingUtilities.invokeLater(() -> {
 						if(_tabbedPane1.getSelectedIndex() == 1)
 						{
 							_cancelButton.setEnabled(false);
@@ -331,9 +323,8 @@ public class QAQCReportPanel extends EpptPanel
 				HecDSSFileAccess hecDSSFileAccess = new HecDSSFileAccess(postProcessDss.toString());
 				if(!hecDSSFileAccess.writeAccess())
 				{
-					JOptionPane.showMessageDialog(this,
-							"DSS File inaccessible. Ensure it is not being written to in another process:\n" + postProcessDss,
-							"DSS File Error", JOptionPane.WARNING_MESSAGE);
+					JOptionPane.showMessageDialog(this, "DSS File inaccessible. Ensure it is not being written to in another process:\n" + postProcessDss, "DSS File Error",
+							JOptionPane.WARNING_MESSAGE);
 				}
 				else
 				{
@@ -352,11 +343,13 @@ public class QAQCReportPanel extends EpptPanel
 			textPane.setText("");
 			int startYear = _epptConfigurationController.getStartYear();
 			int endYear = _epptConfigurationController.getEndYear();
-			Month startMonth = _epptConfigurationController.getWaterYearDefinition().getStartMonth();
-			Month endMonth = _epptConfigurationController.getWaterYearDefinition().getEndMonth();
-			LocalDate start = LocalDate.of(startYear, startMonth, 1);
+			WaterYearPeriod wreslPeriod = new WaterYearPeriod("WRESL Period");
+			WaterYearPeriodRange waterYearPeriodRange = new WaterYearPeriodRange(wreslPeriod, new WaterYearType(startYear, wreslPeriod), new WaterYearType(endYear, wreslPeriod));
+			YearMonth startYearMonth = waterYearPeriodRange.getStart(_epptConfigurationController.getWaterYearDefinition());
+			YearMonth endYearMonth = waterYearPeriodRange.getEnd(_epptConfigurationController.getWaterYearDefinition());
+			LocalDate start = LocalDate.of(startYearMonth.getYear(), startYearMonth.getMonth(), 1);
 			start = start.withDayOfMonth(start.lengthOfMonth());
-			LocalDate end = LocalDate.of(endYear, endMonth, 1).plusMonths(1);
+			LocalDate end = LocalDate.of(endYearMonth.getYear(), endYearMonth.getMonth(), 1);
 			end = end.withDayOfMonth(end.lengthOfMonth());
 			Path wreslMainFile = QaQcFileUtils.createWreslMain(scenarioRun, false);
 			WreslScriptRunner wreslScriptRunner = new WreslScriptRunner(scenarioRun, wreslMainFile, new WreslProcessConsumer(textPane));
@@ -370,8 +363,7 @@ public class QAQCReportPanel extends EpptPanel
 
 	private void stopProcessAsync(JButton button)
 	{
-		SwingUtilities.invokeLater(() ->
-		{
+		SwingUtilities.invokeLater(() -> {
 			button.setEnabled(true);
 			stopProgress();
 		});
@@ -379,8 +371,7 @@ public class QAQCReportPanel extends EpptPanel
 
 	private void startProcessAsync(JButton button)
 	{
-		SwingUtilities.invokeLater(() ->
-		{
+		SwingUtilities.invokeLater(() -> {
 			_cancelButton.setEnabled(true);
 			button.setEnabled(false);
 			startProgress();
@@ -417,8 +408,7 @@ public class QAQCReportPanel extends EpptPanel
 			boolean exists = reportPath.toFile().exists();
 			if(exists)
 			{
-				int warning = JOptionPane.showConfirmDialog(this, "PDF: " + _pdfOutput.getText() + " already exists. Do you wish to overwrite?",
-						"Warning", JOptionPane.YES_NO_OPTION);
+				int warning = JOptionPane.showConfirmDialog(this, "PDF: " + _pdfOutput.getText() + " already exists. Do you wish to overwrite?", "Warning", JOptionPane.YES_NO_OPTION);
 				if(warning == JOptionPane.YES_OPTION)
 				{
 					try(FileOutputStream f = new FileOutputStream(reportPath.toString()))
@@ -428,8 +418,7 @@ public class QAQCReportPanel extends EpptPanel
 					catch(IOException e)
 					{
 						LOGGER.log(Level.WARNING, "Unable to delete existing report", e);
-						JOptionPane.showMessageDialog(this, "Error while creating the pdf file: " + reportPath.getFileName()
-										+ "\nIf the file is already open, please close it and try again.\n" + e.getMessage(),
+						JOptionPane.showMessageDialog(this, "Error while creating the pdf file: " + reportPath.getFileName() + "\nIf the file is already open, please close it and try again.\n" + e.getMessage(),
 								"Error", JOptionPane.WARNING_MESSAGE);
 					}
 				}
@@ -449,8 +438,7 @@ public class QAQCReportPanel extends EpptPanel
 	{
 		Path lastProjectConfiguration = EpptPreferences.getLastProjectConfiguration();
 		Path jrXmlPath = lastProjectConfiguration.getParent().resolve("Reports").resolve("QAQC_Report.jrxml");
-		int replaceReponse = JOptionPane.showConfirmDialog(this, "Jasper report files exist: " + jrXmlPath + "\n Do you wish to overwrite?",
-				"Warning", JOptionPane.YES_NO_OPTION);
+		int replaceReponse = JOptionPane.showConfirmDialog(this, "Jasper report files exist: " + jrXmlPath + "\n Do you wish to overwrite?", "Warning", JOptionPane.YES_NO_OPTION);
 		if(replaceReponse == JOptionPane.YES_OPTION)
 		{
 			try
@@ -481,18 +469,16 @@ public class QAQCReportPanel extends EpptPanel
 			List<Map<EpptScenarioRun, WaterYearPeriodRangesFilter>> waterYearPeriodRanges = _epptConfigurationController.getWaterYearPeriodRanges();
 			PercentDiffStyle percentDiffStyle = (PercentDiffStyle) _percentDiffStyle.getSelectedItem();
 			List<String> disabledSummaryModules = getDisabledSummaryModules();
-			LocalDateTime start = LocalDateTime.of(_epptConfigurationController.getStartYear(),
-					_epptConfigurationController.getWaterYearDefinition().getStartMonth(), 1, 0, 0).minusDays(2);
-			LocalDateTime end = LocalDateTime.of(_epptConfigurationController.getEndYear(),
-					_epptConfigurationController.getWaterYearDefinition().getEndMonth(), 1, 0, 0).plusMonths(1).plusDays(2);
+			LocalDateTime start = LocalDateTime.of(_epptConfigurationController.getStartYear(), _epptConfigurationController.getWaterYearDefinition().getStartMonth(), 1, 0, 0)
+											   .minusDays(2);
+			LocalDateTime end = LocalDateTime.of(_epptConfigurationController.getEndYear(), _epptConfigurationController.getWaterYearDefinition().getEndMonth(), 1, 0, 0)
+											 .plusMonths(1)
+											 .plusDays(2);
 			CommonPeriodFilter commonPeriodFilter = new CommonPeriodFilter(start, end);
-			SummaryReportParameters summaryReportParameters = new SummaryReportParameters(_waterYearDefinition,
-					waterYearPeriodRanges, percentDiffStyle, disabledSummaryModules, commonPeriodFilter, new DssCache());
+			SummaryReportParameters summaryReportParameters = new SummaryReportParameters(_waterYearDefinition, waterYearPeriodRanges, percentDiffStyle, disabledSummaryModules, commonPeriodFilter, new DssCache());
 			List<String> disabledReportModules = getDisabledReportModules();
-			ReportParameters reportParameters = new ReportParameters(tolerance, author, title, subtitle, summaryReportParameters,
-					disabledReportModules, true, true);
-			qaqcReportGenerator.generateQAQCReport(_baseRun, _altRun, reportParameters,
-					pathToWriteOut);
+			ReportParameters reportParameters = new ReportParameters(tolerance, author, title, subtitle, summaryReportParameters, disabledReportModules, true, true);
+			qaqcReportGenerator.generateQAQCReport(_baseRun, _altRun, reportParameters, pathToWriteOut);
 		}
 		catch(QAQCReportException | RuntimeException | EpptReportException e)
 		{
@@ -504,14 +490,13 @@ public class QAQCReportPanel extends EpptPanel
 			}
 			else
 			{
-				LOGGER.log(Level.SEVERE, "Unable to generate Report PDF", e);
+				LOGGER.log(Level.WARNING, "Unable to generate Report PDF", e);
 				appendErrorText("Error: " + e);
 			}
 		}
 		finally
 		{
-			SwingUtilities.invokeLater(() ->
-			{
+			SwingUtilities.invokeLater(() -> {
 				if(_tabbedPane1.getSelectedIndex() == 0)
 				{
 					_cancelButton.setEnabled(false);
@@ -524,8 +509,7 @@ public class QAQCReportPanel extends EpptPanel
 
 	private List<String> getDisabledReportModules()
 	{
-		return _reportModules.entrySet().stream().filter(k -> !k.getKey().isSelected()).map(
-				Map.Entry::getValue).collect(toList());
+		return _reportModules.entrySet().stream().filter(k -> !k.getKey().isSelected()).map(Map.Entry::getValue).collect(toList());
 	}
 
 	private List<String> getDisabledSummaryModules()
@@ -538,10 +522,7 @@ public class QAQCReportPanel extends EpptPanel
 		StandardSummaryReader reader = new StandardSummaryReader(Paths.get(EPPTReport.SUMMARY_CSV), new StandardSummaryErrors(), new DssCache());
 		try
 		{
-			return reader.getModules()
-						 .stream()
-						 .map(text -> new JCheckBox(text, true))
-						 .collect(toList());
+			return reader.getModules().stream().map(text -> new JCheckBox(text, true)).collect(toList());
 		}
 		catch(EpptReportException e)
 		{
@@ -606,6 +587,7 @@ public class QAQCReportPanel extends EpptPanel
 		_cancelButton.setEnabled(false);
 		_cancelButton.setPreferredSize(new Dimension(147, 30));
 		_cancelButton.setText("Cancel");
+		_cancelButton.setToolTipText("Cancel Running Task");
 		panel4.add(_cancelButton);
 		final JPanel panel5 = new JPanel();
 		panel5.setLayout(new BorderLayout(0, 0));
@@ -618,15 +600,9 @@ public class QAQCReportPanel extends EpptPanel
 		_panel1.add(panel6, BorderLayout.CENTER);
 		_tabbedPane1 = new JTabbedPane();
 		panel6.add(_tabbedPane1, BorderLayout.CENTER);
-		final JScrollPane scrollPane1 = new JScrollPane();
-		_tabbedPane1.addTab("QA/QC", scrollPane1);
 		final JPanel panel7 = new JPanel();
 		panel7.setLayout(new BorderLayout(0, 0));
-		scrollPane1.setViewportView(panel7);
-		_qaqcTextPane = new JTextPane();
-		_qaqcTextPane.setEditable(false);
-		_qaqcTextPane.setPreferredSize(new Dimension(800, 250));
-		panel7.add(_qaqcTextPane, BorderLayout.CENTER);
+		_tabbedPane1.addTab("QA/QC", panel7);
 		final JPanel panel8 = new JPanel();
 		panel8.setLayout(new GridBagLayout());
 		panel7.add(panel8, BorderLayout.SOUTH);
@@ -673,6 +649,7 @@ public class QAQCReportPanel extends EpptPanel
 		_openReportButton.setMinimumSize(new Dimension(120, 26));
 		_openReportButton.setPreferredSize(new Dimension(146, 30));
 		_openReportButton.setText("Open Report");
+		_openReportButton.setToolTipText("Open Generated Report");
 		gbc = new GridBagConstraints();
 		gbc.gridx = 3;
 		gbc.gridy = 0;
@@ -681,11 +658,20 @@ public class QAQCReportPanel extends EpptPanel
 		_generateReportButton = new JButton();
 		_generateReportButton.setPreferredSize(new Dimension(147, 30));
 		_generateReportButton.setText("Generate Report");
+		_generateReportButton.setToolTipText("Generate QA/QC Report");
 		gbc = new GridBagConstraints();
 		gbc.gridx = 3;
 		gbc.gridy = 2;
 		gbc.fill = GridBagConstraints.BOTH;
 		panel8.add(_generateReportButton, gbc);
+		final JScrollPane scrollPane1 = new JScrollPane();
+		scrollPane1.setHorizontalScrollBarPolicy(30);
+		panel7.add(scrollPane1, BorderLayout.CENTER);
+		_qaqcTextPane = new JTextPane();
+		_qaqcTextPane.setEditable(false);
+		_qaqcTextPane.setPreferredSize(new Dimension(8, 1382));
+		_qaqcTextPane.setText("");
+		scrollPane1.setViewportView(_qaqcTextPane);
 		final JScrollPane scrollPane2 = new JScrollPane();
 		_tabbedPane1.addTab("Base", scrollPane2);
 		_baseWreslTextPane = new JTextPane();
@@ -705,7 +691,8 @@ public class QAQCReportPanel extends EpptPanel
 		panel11.setLayout(new BorderLayout(0, 0));
 		panel11.setPreferredSize(new Dimension(400, 200));
 		panel10.add(panel11, BorderLayout.CENTER);
-		panel11.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "QA/QC Report Sections"));
+		panel11.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "QA/QC Report Sections", TitledBorder.DEFAULT_JUSTIFICATION,
+				TitledBorder.DEFAULT_POSITION, null, null));
 		final JPanel panel12 = new JPanel();
 		panel12.setLayout(new BorderLayout(0, 0));
 		panel12.setPreferredSize(new Dimension(300, 270));
@@ -780,6 +767,7 @@ public class QAQCReportPanel extends EpptPanel
 		panel11.add(panel14, BorderLayout.SOUTH);
 		_overwriteJRXMLButton = new JButton();
 		_overwriteJRXMLButton.setText("Update Report Templates");
+		_overwriteJRXMLButton.setToolTipText("Update Report Templates in project directory with templates in the installer directory");
 		panel14.add(_overwriteJRXMLButton);
 		final JPanel panel15 = new JPanel();
 		panel15.setLayout(new BorderLayout(0, 0));
@@ -877,7 +865,7 @@ public class QAQCReportPanel extends EpptPanel
 		final JPanel panel17 = new JPanel();
 		panel17.setLayout(new GridBagLayout());
 		panel15.add(panel17, BorderLayout.CENTER);
-		panel17.setBorder(BorderFactory.createTitledBorder("Scenario Runs"));
+		panel17.setBorder(BorderFactory.createTitledBorder(null, "Scenario Runs", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
 		final JLabel label7 = new JLabel();
 		label7.setText("Base:");
 		gbc = new GridBagConstraints();
@@ -917,6 +905,7 @@ public class QAQCReportPanel extends EpptPanel
 		_runBaseWreslButton.setMinimumSize(new Dimension(120, 26));
 		_runBaseWreslButton.setPreferredSize(new Dimension(90, 26));
 		_runBaseWreslButton.setText("Run WRESL");
+		_runBaseWreslButton.setToolTipText("Run EPPT WRESL Script");
 		gbc = new GridBagConstraints();
 		gbc.gridx = 3;
 		gbc.gridy = 0;
@@ -949,6 +938,7 @@ public class QAQCReportPanel extends EpptPanel
 		_overwriteScriptsButtonBase.setMinimumSize(new Dimension(120, 26));
 		_overwriteScriptsButtonBase.setPreferredSize(new Dimension(120, 26));
 		_overwriteScriptsButtonBase.setText("Overwrite Scripts");
+		_overwriteScriptsButtonBase.setToolTipText("Overwrite Scripts in project directory with scripts from the installer directory");
 		gbc = new GridBagConstraints();
 		gbc.gridx = 4;
 		gbc.gridy = 0;
@@ -962,6 +952,7 @@ public class QAQCReportPanel extends EpptPanel
 		_runAltWreslButton.setMinimumSize(new Dimension(120, 26));
 		_runAltWreslButton.setPreferredSize(new Dimension(90, 26));
 		_runAltWreslButton.setText("Run WRESL");
+		_runAltWreslButton.setToolTipText("Run EPPT WRESL Script");
 		gbc = new GridBagConstraints();
 		gbc.gridx = 3;
 		gbc.gridy = 2;
@@ -974,6 +965,7 @@ public class QAQCReportPanel extends EpptPanel
 		_overwriteScriptsButtonAlt.setMinimumSize(new Dimension(120, 26));
 		_overwriteScriptsButtonAlt.setPreferredSize(new Dimension(120, 26));
 		_overwriteScriptsButtonAlt.setText("Overwrite Scripts");
+		_overwriteScriptsButtonAlt.setToolTipText("Overwrite Scripts in project directory with scripts from the installer directory");
 		gbc = new GridBagConstraints();
 		gbc.gridx = 4;
 		gbc.gridy = 2;
@@ -1075,13 +1067,11 @@ public class QAQCReportPanel extends EpptPanel
 				Path scenarioWreslDirectory = scenarioRun.getWreslDirectory();
 				Path scenarioLookupDirectory = scenarioRun.getLookupDirectory();
 				Path installerWreslDirectory = Paths.get(Constant.WRESL_DIR).resolve(scenarioRun.getModel().toString());
-				Path installerLookupDirectory = Paths.get(Constant.WRESL_DIR).resolve(scenarioRun.getModel().toString()).resolve(
-						Constant.LOOKUP_DIRECTORY);
+				Path installerLookupDirectory = Paths.get(Constant.WRESL_DIR).resolve(scenarioRun.getModel().toString()).resolve(Constant.LOOKUP_DIRECTORY);
 				List<Path> scenarioWreslFiles;
 				try(Stream<Path> walk = Files.walk(scenarioWreslDirectory))
 				{
-					scenarioWreslFiles = walk.filter(p -> !p.startsWith(scenarioWreslDirectory.resolve(Constant.LOOKUP_DIRECTORY)))
-											 .collect(toList());
+					scenarioWreslFiles = walk.filter(p -> !p.startsWith(scenarioWreslDirectory.resolve(Constant.LOOKUP_DIRECTORY))).collect(toList());
 				}
 				List<Path> scenarioLookupFiles;
 				try(Stream<Path> walk = Files.walk(scenarioLookupDirectory))
@@ -1091,16 +1081,15 @@ public class QAQCReportPanel extends EpptPanel
 				List<Path> installerWreslFiles;
 				try(Stream<Path> walk = Files.walk(installerWreslDirectory))
 				{
-					installerWreslFiles = walk.filter(p -> !p.startsWith(installerWreslDirectory.resolve(Constant.LOOKUP_DIRECTORY)))
-											  .collect(toList());
+					installerWreslFiles = walk.filter(p -> !p.startsWith(installerWreslDirectory.resolve(Constant.LOOKUP_DIRECTORY))).collect(toList());
 				}
 				List<Path> installerLookupFiles;
 				try(Stream<Path> walk = Files.walk(installerLookupDirectory))
 				{
 					installerLookupFiles = walk.collect(toList());
 				}
-				show = compareDirectories(scenarioLookupDirectory, scenarioLookupFiles, installerLookupDirectory, installerLookupFiles)
-						|| compareDirectories(scenarioWreslDirectory, scenarioWreslFiles, installerWreslDirectory, installerWreslFiles);
+				show = compareDirectories(scenarioLookupDirectory, scenarioLookupFiles, installerLookupDirectory, installerLookupFiles) || compareDirectories(
+						scenarioWreslDirectory, scenarioWreslFiles, installerWreslDirectory, installerWreslFiles);
 			}
 			catch(IOException e)
 			{
@@ -1110,14 +1099,9 @@ public class QAQCReportPanel extends EpptPanel
 		jLabel.setVisible(show);
 	}
 
-	private static boolean compareDirectories(Path scenarioRoot, List<Path> scenarioDirectoryPaths, Path installerRoot,
-											  List<Path> installerDirectoryPaths)
-			throws IOException
+	private static boolean compareDirectories(Path scenarioRoot, List<Path> scenarioDirectoryPaths, Path installerRoot, List<Path> installerDirectoryPaths) throws IOException
 	{
-		boolean differ = installerDirectoryPaths.stream()
-												.map(other -> installerRoot.relativize(other))
-												.map(scenarioRoot::resolve)
-												.anyMatch(p -> !scenarioDirectoryPaths.contains(p));
+		boolean differ = installerDirectoryPaths.stream().map(other -> installerRoot.relativize(other)).map(scenarioRoot::resolve).anyMatch(p -> !scenarioDirectoryPaths.contains(p));
 		if(!differ)
 		{
 			for(Path installerPath : installerDirectoryPaths)
@@ -1166,8 +1150,7 @@ public class QAQCReportPanel extends EpptPanel
 
 	private void appendErrorText(String str)
 	{
-		SwingUtilities.invokeLater(() ->
-		{
+		SwingUtilities.invokeLater(() -> {
 			StyleConstants.setForeground(_style, Color.red);
 			appendText(str);
 		});
@@ -1175,8 +1158,7 @@ public class QAQCReportPanel extends EpptPanel
 
 	private void appendNormalText(String str)
 	{
-		SwingUtilities.invokeLater(() ->
-		{
+		SwingUtilities.invokeLater(() -> {
 			StyleConstants.setForeground(_style, Color.black);
 			appendText(str);
 		});

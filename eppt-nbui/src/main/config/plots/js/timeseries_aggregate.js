@@ -53,7 +53,7 @@ function getPlotlyAggregateSeries(datum, firstRecord, lastRecord) {
                         seriesList.push(series);
                     }
                     series.push({
-                        name: tsList[j]['ts_name'],
+                        name: tsList[j]['ts_name'] + '     ',
                         x: x,
                         y: y,
                         line: {
@@ -76,7 +76,7 @@ function getPlotlyAggregateSeries(datum, firstRecord, lastRecord) {
     return seriesList;
 }
 
-function buildLayouts(datum, yaxis, title) {
+function buildAggregateLayouts(datum, yaxis, title) {
     let layoutList = [];
     for (let i = 0; i < datum.length; i++) {
         let tsList = datum[i]['ts_list'];
@@ -95,7 +95,8 @@ function buildLayouts(datum, yaxis, title) {
                             } else {
                                 plotTitle += '<br>' + annualFilters[m]['annual_period'].replace("<br>", " - ");
                             }
-                        } else if (annualFilters[m]['month_period']) {
+                        }
+                        if (annualFilters[m]['month_period']) {
                             plotTitle += '<br>' + annualFilters[m]['month_period'];
                         }
                         layoutList[axis] = {
@@ -103,8 +104,10 @@ function buildLayouts(datum, yaxis, title) {
                             yaxis: {
                                 title: {
                                     text: yaxis,
+                                    standoff: 50
                                 },
-                                tickformat: FORMATTER,
+                                automargin: true,
+                                tickformatstops: FORMATTER,
                                 gridcolor: '#CCCCCC',
                                 rangemode: 'tozero'
                             },
@@ -145,11 +148,14 @@ function buildLayouts(datum, yaxis, title) {
 }
 
 function plot(data) {
-    FORMATTER = getD3Formatter(data['scenario_run_data'][0]['ts_list'][0]['monthly_filters'][0]['annual_filters'][0]['discrete_ts']);
+    plotAggregate(data);
+}
+
+function plotAggregate(data) {
     var datum = data['scenario_run_data'];
-    var layout = buildLayouts(datum, data['units'], data['gui_link_title']);
+    var layout = buildAggregateLayouts(datum, data['units'], data['gui_link_title']);
     let plotlyAggregateSeries = getPlotlyAggregateSeries(datum, data['first_record'], data['last_record']);
-    plotData(layout, plotlyAggregateSeries);
+    plotData(layout, plotlyAggregateSeries, data['ts_descriptor']);
 }
 
 function plotlyCopyToClipboard(element) {
@@ -161,13 +167,50 @@ function plotlyCopyToClipboard(element) {
         text += '\t' + data1[i]['name']
     }
     text += '\n';
-    let datum = data1[0];
-    let xarr = datum['x'];
-    for (var j = 0; j < xarr.length; j++) {
-        text += xarr[j];
-        for (var k = 0; k < data1.length; k++) {
-            let yarr = data1[k]['y'];
-            text += '\t' + yarr[j];
+    let xyVals = [];
+    var foundDate = false;
+    for (let k = 0; k < data1.length; k++) {
+        let xarr = data1[k]['x'];
+        let yarr = data1[k]['y'];
+        let hoverinfo = data1[k]['hoverinfo'];
+        for (let j = 0; j < xarr.length; j++) {
+            let x;
+            if (hoverinfo[j] !== 'skip') {
+
+                if (Object.prototype.toString.call(xarr[j]) === '[object Date]') {
+                    foundDate = true;
+                    let date = new Date(xarr[j]);
+                    x = date.setMonth(date.getMonth());
+                    x = date;
+                } else {
+                    x = xarr[j];
+                }
+                if (!xyVals[x]) {
+                    xyVals[x] = [];
+                }
+                xyVals[x].push(yarr[j]);
+            }
+        }
+    }
+    let keys = Object.keys(xyVals);
+    if (foundDate) {
+        keys.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    } else {
+        keys.sort();
+    }
+    for (let i = 0; i < keys.length; i++) {
+        let key = keys[i];
+        if (foundDate) {
+            let date = new Date(key);
+            text += (date.getMonth() + 1) + '/' + date.getFullYear();
+        } else {
+            text += key;
+        }
+        for (let j = 0; j < xyVals[key].length; j++) {
+            text += '\t';
+            if (xyVals[key][j]) {
+                text += xyVals[key][j];
+            }
         }
         text += '\n';
     }

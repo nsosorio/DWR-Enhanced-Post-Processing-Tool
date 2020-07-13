@@ -39,7 +39,7 @@ function getPlotlyAggregateSeries(datum) {
                         seriesList.push(series);
                     }
                     series.push({
-                        name: tsList[j]['ts_name'],
+                        name: tsList[j]['ts_name'] + '     ',
                         x: x,
                         y: y,
                         line: {
@@ -55,15 +55,18 @@ function getPlotlyAggregateSeries(datum) {
     return seriesList;
 }
 
-function plot(data) {
-    FORMATTER = getD3Formatter(data['scenario_run_data'][0]['ts_list'][0]['monthly_filters'][0]['annual_filters'][0]['discrete_ts']);
-    var datum = data['scenario_run_data'];
-    var layout = buildLayouts(datum, data['units'], data['gui_link_title']);
-    let plotlyAggregateSeries = getPlotlyAggregateSeries(datum);
-    plotData(layout, plotlyAggregateSeries);
+function plot(data){
+    plotAggregate(data);
 }
 
-function buildLayouts(datum, yaxis, title) {
+function plotAggregate(data) {
+    var datum = data['scenario_run_data'];
+    var layout = buildAggregateLayouts(datum, data['units'], data['gui_link_title']);
+    let plotlyAggregateSeries = getPlotlyAggregateSeries(datum);
+    plotData(layout, plotlyAggregateSeries, data['ts_descriptor']);
+}
+
+function buildAggregateLayouts(datum, yaxis, title) {
     let layoutList = [];
     for (let i = 0; i < datum.length; i++) {
         let tsList = datum[i]['ts_list'];
@@ -82,7 +85,8 @@ function buildLayouts(datum, yaxis, title) {
                             } else {
                                 plotTitle += '<br>' + annualFilters[m]['annual_period'].replace("<br>", " - ");
                             }
-                        } else if (annualFilters[m]['month_period']) {
+                        }
+                        if (annualFilters[m]['month_period']) {
                             plotTitle += '<br>' + annualFilters[m]['month_period'];
                         }
                         layoutList[axis] = {
@@ -90,14 +94,16 @@ function buildLayouts(datum, yaxis, title) {
                             yaxis: {
                                 title: {
                                     text: yaxis,
+                                    standoff: 50
                                 },
-                                tickformat: FORMATTER,
+                                automargin: true,
+                                tickformatstops: FORMATTER,
                                 gridcolor: '#CCCCCC',
                                 rangemode: 'tozero'
                             },
                             xaxis: {
                                 gridcolor: '#CCCCCC',
-                                tickformat: ',.0%',
+                                tickformatstops: PERCENT_FORMATTER,
                                 range: [1, 0],
                             },
                             showlegend: true,

@@ -22,6 +22,7 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import calsim.app.AppUtils;
 import calsim.app.DerivedTimeSeries;
 import calsim.app.MultipleTimeSeries;
 import gov.ca.water.calgui.bo.GUILinksAllModelsBO;
@@ -58,7 +59,6 @@ import hec.io.TimeSeriesContainer;
  */
 public class DSSGrabber2SvcImpl extends DSSGrabber1SvcImpl
 {
-
 	private static final Logger LOGGER = Logger.getLogger(DSSGrabber2SvcImpl.class.getName());
 	private final DerivedTimeSeries _dts;
 	private final MultipleTimeSeries _mts;
@@ -300,45 +300,62 @@ public class DSSGrabber2SvcImpl extends DSSGrabber1SvcImpl
 					}
 					else
 					{
+						result.location += ' ' + AppUtils.getOperationName(dts2.getOperationIdAt(i)) + " " + interimResult.location;
+						result.parameter += ' ' + AppUtils.getOperationName(dts2.getOperationIdAt(i)) + " "  + interimResult.parameter;
+						result.version += ' ' + AppUtils.getOperationName(dts2.getOperationIdAt(i)) + " "  + interimResult.version;
 						switch(dts2.getOperationIdAt(i))
 						{
-
 							case 0:
 
 								// Iff operation is "?", treat as a control
 
 								for(int j = 0; j < interimResult.numberValues; j++)
 								{
-									result.values[j] = ((result.values[j] > 0.1) && (interimResult.values[j] > 0.1))
-											? 9876.5 : 0;
+									if(result.values.length < j && interimResult.values.length < j)
+									{
+										result.values[j] = ((result.values[j] > 0.1) && (interimResult.values[j] > 0.1))
+												? 9876.5 : 0;
+									}
 								}
 								break;
 
 							case 1:
 								for(int j = 0; j < interimResult.numberValues; j++)
 								{
-									result.values[j] = result.values[j] + interimResult.values[j];
+									if(j < result.values.length  && j < interimResult.values.length)
+									{
+										result.values[j] = result.values[j] + interimResult.values[j];
+									}
 								}
 								break;
 
 							case 2:
 								for(int j = 0; j < interimResult.numberValues; j++)
 								{
-									result.values[j] = result.values[j] - interimResult.values[j];
+									if(j < result.values.length  && j < interimResult.values.length)
+									{
+										result.values[j] = result.values[j] - interimResult.values[j];
+									}
 								}
 								break;
 
 							case 3:
 								for(int j = 0; j < interimResult.numberValues; j++)
 								{
-									result.values[j] = result.values[j] * interimResult.values[j];
+									if(j < result.values.length  && j < interimResult.values.length)
+									{
+										result.values[j] = result.values[j] * interimResult.values[j];
+									}
 								}
 								break;
 
 							case 4:
 								for(int j = 0; j < interimResult.numberValues; j++)
 								{
-									result.values[j] = result.values[j] / interimResult.values[j];
+									if(j < result.values.length  && j < interimResult.values.length)
+									{
+										result.values[j] = result.values[j] / interimResult.values[j];
+									}
 								}
 								break;
 
@@ -394,47 +411,5 @@ public class DSSGrabber2SvcImpl extends DSSGrabber1SvcImpl
 			LOGGER.log(Level.SEVERE, "Unable to get time series from.", ex);
 		}
 		return null;
-	}
-
-	/**
-	 * Variant of getDifferenceSeriesWithMultipleTimeSeries to work with MTS (multiple time series)
-	 *
-	 * @param timeSeriesResults array of arrays of HEC TimeSeriesContainer objects, each
-	 *                          representing a set of results for a scenario. Base is in
-	 *                          position [0].
-	 * @return array of arrays of HEC TimeSeriesContainer objects (size one less
-	 * than timeSeriesResult. Position [0] contains difference [1]-[0],
-	 * position [1] contains difference [2]-[0], ...
-	 */
-	public TimeSeriesContainer[][] getDifferenceSeriesWithMultipleTimeSeries(TimeSeriesContainer[][] timeSeriesResults)
-	{
-
-		try
-		{
-			TimeSeriesContainer[][] results = new TimeSeriesContainer[timeSeriesResults.length][_alternatives.size()];
-
-			for(int tsi = 0; tsi < timeSeriesResults.length; tsi++)
-			{
-
-				for(int i = 0; i < _alternatives.size(); i++)
-				{
-
-					if(timeSeriesResults[tsi][i] != null)
-					{
-						results[tsi][i] = (TimeSeriesContainer) timeSeriesResults[tsi][i + 1].clone();
-						for(int j = 0; j < results[tsi][i].numberValues; j++)
-						{
-							results[tsi][i].values[j] = results[tsi][i].values[j] - timeSeriesResults[tsi][0].values[j];
-						}
-					}
-				}
-			}
-			return results;
-		}
-		catch(RuntimeException ex)
-		{
-			LOGGER.log(Level.SEVERE, "Unable to get time-series.", ex);
-		}
-		return timeSeriesResults;
 	}
 }
