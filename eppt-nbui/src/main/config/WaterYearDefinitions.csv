@@ -1,4 +1,4 @@
-!Name,StartMonth,EndMonth,Default Start Year,Default End Year
-D1641,October,September,1922,2003
-SWP Contract Year,January,December,1921,2002
-CVP Contract Year,March,February,1921,2002
+!,StartMonth,EndMonth,Default Start Year,Default End Year
+,October,September,1922,2003
+,January,December,1921,2002
+,March,February,1921,2002
