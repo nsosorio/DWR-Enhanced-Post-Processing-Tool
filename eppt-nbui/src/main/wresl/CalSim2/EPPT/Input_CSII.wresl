@@ -116,7 +116,7 @@ define CLR_CRK_FLOW_MIN { value max(CLR_CRK_FLOW_MIN1, CLR_CRK_FLOW_MIN2, CLR_CR
 
 define SAC_KESWICK_FLOW { timeseries 'C5' kind 'FLOW-CHANNEL' units 'CFS' convert 'TAF' }
 define SAC_KESWICK_FLOW_MIN1 { timeseries 'C5_MIF' kind 'FLOW-MIN-INSTREAM' units 'CFS' convert 'TAF' }
-define SAC_KESWICK_FLOW_MIN2 { timeseries 'KESWICK_MIN' kind 'ALIAS' units 'CFS' convert 'TAF' }
+define SAC_KESWICK_FLOW_MIN2 { timeseries 'KESWICK_MIN1' kind 'ALIAS' units 'CFS' convert 'TAF' }
 define SAC_KESWICK_FLOW_MIN3 { timeseries 'C5MIF__Z3' kind 'FLOW-MIN-INSTREAM' units 'CFS' convert 'TAF' }
 define SAC_KESWICK_FLOW_MIN {
 	case OctDec {
@@ -366,7 +366,7 @@ define APRMAYEXPCTRL	{timeseries 'APRMAYEXPCTRL' 	kind 'EXPORT-CTRL-APRMAY' 	uni
 define MAXEXP_RPA	 	{timeseries 'MAXEXP_RPADV' 		kind 'EXPORT-LIMIT' 		units 'CFS'  convert 'TAF'} 
 define FWS_X2_LIMIT 	{timeseries 'FWS_MAXEXPX2DV' 	kind 'EXPORT-LIMIT' 		units 'CFS'  convert 'TAF'}
 define NMFS_MAXEXPDCC	{timeseries 'NMFS_MAXEXPDCCDV'	kind 'EXPORT-LIMIT' 		units 'CFS'  convert 'TAF'}
-define BANKS_UPSTREAM 	{timeseries 'D409_UPSTREAM' 	kind 'FLOW-DELIVERY' 		units 'CFS'  convert 'TAF'}
+define BANKS_UPSTREAM 	{timeseries 'D409_UPS' 	kind 'DEBUG-CFS' 		units 'CFS'  convert 'TAF'}
 define TOT_EXP 			{timeseries 'D409' 				kind 'FLOW-DELIVERY' 		units 'CFS'  convert 'TAF'} 
 define NMFS_MAXEXP		{timeseries 'NMFS_MAXEXPDV' 	kind 'NMFS' 				units 'CFS'  convert 'TAF'}
 define APRMAYTRACYCTRL 	{timeseries 'APRMAYTRACYCTRL' 	kind 'EXPORT-CTRL-APRMAY'	units 'CFS'  convert 'TAF'} 
@@ -405,11 +405,11 @@ define RIOVISTA 		{ timeseries 'C405' kind 'FLOW-CHANNEL' units 'CFS' convert 'T
 define RIOVISTA_MIF 	{ timeseries 'C405_MIF' kind 'FLOW-MIN-INSTREAM' units 'CFS' convert 'TAF' }
 define QWEST 			{ timeseries 'C416A' kind 'FLOW-CHANNEL' units 'CFS' convert 'TAF' }
 define EXPRATIO 		{ timeseries 'EXPRATIO_' kind 'EI-RATIO-STD' units 'NONE'}
-define D409_Delta 		{ timeseries 'D409_Delta' kind 'FLOW-DELIVERY' units 'CFS' convert 'TAF' }
-define D409_Upstream 	{ timeseries 'D409_Upstream' kind 'FLOW-DELIVERY' units 'CFS' convert 'TAF' }
+define D409_Delta 		{ timeseries 'D409_Del' kind 'DEBUG-CFS' units 'CFS' convert 'TAF' }
+define D409_Upstream 	{ timeseries 'D409_Ups' kind 'DEBUG-CFS' units 'CFS' convert 'TAF' }
 define DO 				{ timeseries 'C406' kind 'FLOW-CHANNEL' units 'CFS' convert 'TAF' }
-define C406_Delta 		{ timeseries 'C406_Delta' kind 'FLOW-CHANNEL' units 'CFS' convert 'TAF' }
-define C406_Upstream 	{ timeseries 'C406_Upstream' kind 'FLOW-CHANNEL' units 'CFS' convert 'TAF' }
+define C406_Delta 		{ timeseries 'C406_Del' kind 'DEBUG-CFS' units 'CFS' convert 'TAF' }
+define C406_Upstream 	{ timeseries 'C406_Ups' kind 'DEBUG-CFS' units 'CFS' convert 'TAF' }
 define OMR_INCREASE_ 	{ timeseries 'OMR_INCREASE_' kind 'TEMP' units 'CFS' convert 'TAF' }
 define EXPORT_DEC_RPA_ 	{ timeseries 'EXPORT_DEC_RPA_' kind 'TEMP' units 'CFS' convert 'TAF' }
 define JP_MRDO 			{ timeseries 'JP_MRDO' kind 'FLOW' units 'CFS' convert 'TAF' }
